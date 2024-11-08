@@ -21,10 +21,9 @@ const Card = ({ task }) => {
   const [showModal, setShowModal] = useState(false);
   const [attachments, setAttachments] = useState([]);
   const [selectedFiles, setSelectedFiles] = useState([]);
-  const [fetchedFilesCount, setFetchedFilesCount] = useState(0); // State to store fetched files count
+  const [fetchedFilesCount, setFetchedFilesCount] = useState(0);
 
   const handleAttachedFile = () => {
-    // Clear previously attached files
     setAttachments([]);
     setSelectedFiles([]);
     setShowModal(true);
@@ -70,7 +69,7 @@ const Card = ({ task }) => {
         );
         setFetchedFilesCount(taskFilesResponse.data.files.length);
       }
-      closeModal(); // Close the modal after successful upload
+      closeModal();
     } catch (error) {
       console.error("Error uploading files:", error);
     }
@@ -78,7 +77,6 @@ const Card = ({ task }) => {
 
   return (
     <div className="card bg-base-100 w-96 shadow-md my-3">
-      {/* Card content */}
       <div className="p-2">
         <div className="flex justify-between items-center py-2">
           <div className="avatar items-center">
@@ -115,6 +113,15 @@ const Card = ({ task }) => {
         </div>
 
         <div className="flex justify-between items-center py-2">
+          <div className="avatar items-center">
+            <div className="w-6 rounded-full mx-1">
+              <img src={avatarUrl} alt="client" />
+            </div>
+            <div className="w-6 rounded-full mx-1">
+              <img src={avatarUrl} alt="client" />
+            </div>
+          </div>
+          <div>12+</div>
           <div className="flex items-center">
             <FaRegComments />
             <p className="px-1">{commentsCount}</p>
@@ -125,7 +132,6 @@ const Card = ({ task }) => {
           >
             <IoMdAttach />
             <p className="px-1">{fetchedFilesCount}</p>{" "}
-            {/* Display the fetched files count here */}
           </div>
           <div className="flex items-center">
             <FaCalendarDays />

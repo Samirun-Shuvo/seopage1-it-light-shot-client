@@ -13,7 +13,7 @@ const Banner = () => {
         >
           <TaskStatusHeader status={status} />
           <div className="overflow-y-auto h-[70vh] p-2">
-            {status.tasks && // Ensure tasks exist
+            {status.tasks && 
               status.tasks.map((task, cardIndex) => (
                 <Card key={cardIndex} cardIndex={cardIndex} task={task} />
               ))}
