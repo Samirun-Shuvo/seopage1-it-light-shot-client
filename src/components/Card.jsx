@@ -1,11 +1,12 @@
 import React, { useState } from "react";
 import { MdAssignment } from "react-icons/md";
-import { FaElementor } from "react-icons/fa";
-import { FaRegComments } from "react-icons/fa";
+import { FaElementor, FaRegComments } from "react-icons/fa";
 import { IoMdAttach } from "react-icons/io";
 import { FaCalendarDays } from "react-icons/fa6";
+import axios from "axios";
+import Swal from "sweetalert2";
 
-const Card = ({ index, task }) => {
+const Card = ({ task }) => {
   const {
     assigneeName,
     avatarUrl,
@@ -17,35 +18,67 @@ const Card = ({ index, task }) => {
     id,
   } = task;
 
-  // State for managing the modal and attachments
   const [showModal, setShowModal] = useState(false);
   const [attachments, setAttachments] = useState([]);
+  const [selectedFiles, setSelectedFiles] = useState([]);
+  const [fetchedFilesCount, setFetchedFilesCount] = useState(0); // State to store fetched files count
 
-  // Function to handle attachment icon click, opens modal
-  const handleAttachedFile = (taskId) => {
+  const handleAttachedFile = () => {
+    // Clear previously attached files
+    setAttachments([]);
+    setSelectedFiles([]);
     setShowModal(true);
   };
 
-  // Function to close modal
-  const closeModal = () => {
-    setShowModal(false);
-  };
+  const closeModal = () => setShowModal(false);
 
-  // Function to handle file selection
   const handleFileChange = (event) => {
     const files = Array.from(event.target.files);
-    const fileList = files.map((file) => ({
+    const updatedFiles = files.map((file) => ({
       name: file.name,
       extension: file.name.split(".").pop(),
+      file,
     }));
-    setAttachments((prevAttachments) => [...prevAttachments, ...fileList]);
+
+    setAttachments((prev) => [...prev, ...updatedFiles]);
+    setSelectedFiles((prev) => [...prev, ...files]);
   };
-  const handleSubmitData = (id) => {
-    console.log(id);
+
+  const handleSubmitData = async () => {
+    const formData = new FormData();
+    formData.append("taskId", id);
+    selectedFiles.forEach((file) => formData.append("files", file));
+
+    try {
+      const response = await axios.post(
+        "http://localhost:5000/uploadfiles",
+        formData,
+        {
+          headers: { "Content-Type": "multipart/form-data" },
+        }
+      );
+      if (response.data.status == "exist") {
+        Swal.fire({
+          icon: "error",
+          text: response.data.message,
+        });
+      }
+
+      if (response.status === 200) {
+        const taskFilesResponse = await axios.get(
+          `http://localhost:5000/uploadfiles/${id}`
+        );
+        setFetchedFilesCount(taskFilesResponse.data.files.length);
+      }
+      closeModal(); // Close the modal after successful upload
+    } catch (error) {
+      console.error("Error uploading files:", error);
+    }
   };
 
   return (
     <div className="card bg-base-100 w-96 shadow-md my-3">
+      {/* Card content */}
       <div className="p-2">
         <div className="flex justify-between items-center py-2">
           <div className="avatar items-center">
@@ -65,6 +98,7 @@ const Card = ({ index, task }) => {
             </p>
           </div>
         </div>
+
         <div className="flex justify-between items-center py-2">
           <div className="flex items-center">
             <FaElementor />
@@ -79,26 +113,19 @@ const Card = ({ index, task }) => {
             </p>
           </div>
         </div>
+
         <div className="flex justify-between items-center py-2">
-          <div className="avatar items-center">
-            <div className="w-6 rounded-full m-1">
-              <img src={avatarUrl} alt="client" />
-            </div>
-            <div className="w-6 rounded-full m-1">
-              <img src={avatarUrl} alt="assignee" />
-            </div>
-          </div>
-          <div>12 + </div>
           <div className="flex items-center">
             <FaRegComments />
             <p className="px-1">{commentsCount}</p>
           </div>
           <div
-            onClick={() => handleAttachedFile(id)}
+            onClick={handleAttachedFile}
             className="flex items-center cursor-pointer"
           >
             <IoMdAttach />
-            <p className="px-1">{attachments.length}</p>
+            <p className="px-1">{fetchedFilesCount}</p>{" "}
+            {/* Display the fetched files count here */}
           </div>
           <div className="flex items-center">
             <FaCalendarDays />
@@ -143,7 +170,7 @@ const Card = ({ index, task }) => {
               </button>
               <button
                 className="bg-[#2b2e29] text-white p-2 mt-4 rounded"
-                onClick={() => handleSubmitData(id)}
+                onClick={handleSubmitData}
               >
                 Submit
               </button>
