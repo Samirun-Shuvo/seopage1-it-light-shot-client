@@ -7,6 +7,7 @@ import axios from "axios";
 import Swal from "sweetalert2";
 
 const Card = ({ task }) => {
+  const baseUrl = import.meta.env.VITE_API_BASE_URL;
   const {
     assigneeName,
     avatarUrl,
@@ -49,13 +50,9 @@ const Card = ({ task }) => {
     selectedFiles.forEach((file) => formData.append("files", file));
 
     try {
-      const response = await axios.post(
-        "http://localhost:5000/uploadfiles",
-        formData,
-        {
-          headers: { "Content-Type": "multipart/form-data" },
-        }
-      );
+      const response = await axios.post(`${baseUrl}/uploadfiles`, formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
       if (response.data.status == "exist") {
         Swal.fire({
           icon: "error",
@@ -65,7 +62,7 @@ const Card = ({ task }) => {
 
       if (response.status === 200) {
         const taskFilesResponse = await axios.get(
-          `http://localhost:5000/uploadfiles/${id}`
+          `${baseUrl}/uploadfiles/${id}`
         );
         setFetchedFilesCount(taskFilesResponse.data.files.length);
       }
